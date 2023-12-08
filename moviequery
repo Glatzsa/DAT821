@@ -1,0 +1,34 @@
+class Movies:
+    """Encapsulates an Amazon DynamoDB table of movie data."""
+
+    def __init__(self, dyn_resource):
+        """
+        :param dyn_resource: A Boto3 DynamoDB resource.
+        """
+        self.dyn_resource = dyn_resource
+        # The table variable is set during the scenario in the call to
+        # 'exists' if the table exists. Otherwise, it is set by 'create_table'.
+        self.table = None
+
+
+    def query_movies(self, year):
+        """
+        Queries for movies that were released in the specified year.
+
+        :param year: The year to query.
+        :return: The list of movies that were released in the specified year.
+        """
+        try:
+            response = self.table.query(KeyConditionExpression=Key("year").eq(year))
+        except ClientError as err:
+            logger.error(
+                "Couldn't query for movies released in %s. Here's why: %s: %s",
+                year,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+        else:
+            return response["Items"]
+
+
